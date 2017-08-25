@@ -1,0 +1,37 @@
+{
+  "name": "ts-vscode-boilerplate",
+  "version": "1.0.0",
+  "description": "Boilerplate for TS development with VSCode",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kamilczak020/ts-vscode-boilerplate.git"
+  },
+  "author": "Kamil Solecki",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kamilczak020/ts-vscode-boilerplate/issues"
+  },
+  "homepage": "https://github.com/Kamilczak020/ts-vscode-boilerplate#readme",
+  "devDependencies": {
+    "browser-sync": "^2.18.13",
+    "browserify": "^14.4.0",
+    "chai": "^4.1.1",
+    "gulp": "^3.9.1",
+    "gulp-istanbul": "^1.1.2",
+    "gulp-mocha": "^4.3.1",
+    "gulp-sourcemaps": "^2.6.1",
+    "gulp-tslint": "^8.1.2",
+    "gulp-typescript": "^3.2.2",
+    "gulp-uglify": "^3.0.0",
+    "run-sequence": "^2.1.0",
+    "tsify": "^3.0.1",
+    "tslint": "^5.6.0",
+    "typescript": "^2.4.2",
+    "vinyl-buffer": "^1.0.0",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}
