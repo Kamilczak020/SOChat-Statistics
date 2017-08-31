@@ -13,23 +13,23 @@ const connectionOptions = {
     user: 'postgres',
     password: 'Kaka1337#'
 };
+// Initialize pg-promise with bluebird
 let pgp = pgPromise(initOptions);
+// Create db connection with connection string
 let db = pgp(connectionOptions);
-class RoomQueries {
-    getAllRooms(req, res, next) {
-        db.any('select * from Rooms')
-            .then((data) => {
-            let roomCount = data.length;
-            res.status(200)
-                .json({
-                status: 'sucess',
-                data: data,
-                message: `Retrieved ${roomCount} rooms.`
-            });
-        })
-            .catch((err) => {
-            return next(err);
+function getAllRooms(req, res, next) {
+    db.any('select * from Rooms')
+        .then((data) => {
+        let roomCount = data.length;
+        res.status(200)
+            .json({
+            status: 'sucess',
+            data: data,
+            message: `Retrieved ${roomCount} rooms.`
         });
-    }
+    })
+        .catch((err) => {
+        return next(err);
+    });
 }
-exports.RoomQueries = RoomQueries;
+exports.getAllRooms = getAllRooms;
