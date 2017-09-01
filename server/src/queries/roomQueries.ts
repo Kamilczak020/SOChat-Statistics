@@ -36,3 +36,19 @@ export function getAllRooms(req: Request, res: Response, next: NextFunction) {
             return next(err);
         });
 }
+
+export function getRoomById(req: Request, res: Response, next: NextFunction) {
+    let roomId = parseInt(req.params.id);
+    db.one('select * from Rooms where room_id = $1', roomId)
+        .then((data) => {
+            res.status(200)
+                .json({
+                    status: 'sucess',
+                    data: data,
+                    message: `Retrieved room of id: ${roomId}`
+                })
+        })
+        .catch((err) => {
+            return next(err);
+        })
+}

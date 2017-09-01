@@ -8,6 +8,7 @@ debug('ts-express:server');
 
 // Validate db config schema before starting the server
 let dbconfig = require('../dbconfig.json');
+
 if (!validateDbConfig(dbconfig)) {
     console.log("dbconfig.json is invalid.")
 }
