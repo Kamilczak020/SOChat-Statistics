@@ -1,100 +1,92 @@
-import * as request from 'request';
-import * as cheerio from 'cheerio';
-import * as moment from 'moment';
-import { Message } from '../models/messageModel';
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const request = require("request");
+const cheerio = require("cheerio");
+const messageModel_1 = require("../models/messageModel");
 const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
-
 /**
- * 
+ *
  * @param roomId Id of the room to scrape
  * @param date Date of the transcript page to scrape. Only takes into account Day, Month and Year
  * @param callback The callback
  */
-export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callback: (err: any, data: Array<Message>) => void): void {
+function scrapeTranscriptPage(roomId, date, callback) {
     const year = date.format('YYYY');
     const month = date.format('MM');
     const day = date.format('DD');
     let messages = [];
-
     const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
     request(url, (err, res, body) => {
         if (err) {
             callback(err, null);
-        } else {
+        }
+        else {
             const $ = cheerio.load(body);
             const monologueElements = $('div.monologue');
-            
             // Each monologue block is a group of messages by one user. It contains user info and message objects.
             monologueElements.each((monologueIndex, monologueElement) => {
                 const userId = getUserId(monologueElement, $);
                 const username = $(monologueElement).find('div.username').children('a').attr('title');
                 const messageElements = $(monologueElement).find('div.message');
-                
                 // Each single message contains *only* message-specific information.
                 messageElements.each((messageIndex, messageElement) => {
                     const messageId = getMessageId(messageElement, $);
                     const messageText = getMessageText(messageElement, $);
                     const stars = getStars(messageElement, $);
-
                     // Optional parameters (not all messages are responses)
                     const responseMessageId = getResponseId(messageElement, $);
-                    
                     // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
                     if (messageText !== undefined) {
-                        const message = new Message(messageId, userId, roomId, messageText, date, responseMessageId, stars);
+                        const message = new messageModel_1.Message(messageId, userId, roomId, messageText, date, responseMessageId, stars);
                         messages.push(message);
-                    }                    
-                })
-            })
+                    }
+                });
+            });
             // Fire a callback with results
             callback(null, messages);
-        }   
-    })
+        }
+    });
 }
-
+exports.scrapeTranscriptPage = scrapeTranscriptPage;
 // Extracts user id from classname
-function getUserId(monologueElement: CheerioElement, $: CheerioStatic): number {
+function getUserId(monologueElement, $) {
     const userIdClass = $(monologueElement).attr('class');
     const userId = userIdClass.split('-')[1];
     return parseInt(userId);
 }
-
 // Extracts message id from classname
-function getMessageId(messageElement: CheerioElement, $: CheerioStatic): number {
+function getMessageId(messageElement, $) {
     const messageIdClass = $(messageElement).attr('id');
     const messageId = messageIdClass.split('-')[1];
     return parseInt(messageId);
 }
-
 // Extracts message text from the content div.
-function getMessageText(messageElement: CheerioElement, $: CheerioStatic) {
+function getMessageText(messageElement, $) {
     const content = $(messageElement).children('div.content');
-
     // In case of onebox messages, return undefined.
     if ($(content).children().is('div.onebox')) {
         return undefined;
-    } else {
+    }
+    else {
         return content.contents().text();
     }
 }
-
 // Extracts response id from classname. Messages that arent a response, stay undefined.
-function getResponseId(messageElement: CheerioElement, $: CheerioStatic): number {
-    if ( $(messageElement).children().is('a.reply-info')) {
+function getResponseId(messageElement, $) {
+    if ($(messageElement).children().is('a.reply-info')) {
         const responseIdClass = $(messageElement).children('a.reply-info').attr('href');
         const responseId = responseIdClass.split('#')[1];
         return parseInt(responseId);
     }
 }
-
 // Extracts stars count from classname. For messages without stars returns 0.
-function getStars(messageElement: CheerioElement, $: CheerioStatic): number {
-    if ( $(messageElement).children('span.flash').children().is('span.stars')) {
-        const starsElement = $(messageElement).find('span.stars').children('span.times')
+function getStars(messageElement, $) {
+    if ($(messageElement).children('span.flash').children().is('span.stars')) {
+        const starsElement = $(messageElement).find('span.stars').children('span.times');
         const stars = starsElement.first().text();
         return parseInt(stars);
-    } else {
+    }
+    else {
         return 0;
     }
 }
