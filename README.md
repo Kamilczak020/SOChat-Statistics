@@ -3,7 +3,7 @@ Full stack statistics application for Stack Overflow's Chat.
 Wether it's 'panini' or 'border-radius' that you would like to query the transcript for, we have it all.
 
 ## Getting Started - Server (API)
-The REST API is built on Node.js, with PostgreSQL for database as default.
+The application is implemented as a Node.js service implementing a REST API, which scrapes the StackOverflow chat transcriptfor the raw data, and stores the data in a local PostgreSQL database
 
 To begin, simply clone the repo with:
 ```
