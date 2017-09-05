@@ -14,8 +14,6 @@ CREATE TABLE Messages (
 -- Table: Rooms
 CREATE TABLE Rooms (
     room_id int  NOT NULL,
-    name varchar(150)  NOT NULL,
-    description varchar(500)  NOT NULL,
     CONSTRAINT Rooms_pk PRIMARY KEY (room_id)
 );
 

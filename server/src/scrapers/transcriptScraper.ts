@@ -12,10 +12,11 @@ const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
  * @param callback The callback
  */
 export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callback: (err: any, data: Array<Message>) => void): void {
+    const timestamp = date.format('YYYY-MM-DD');
     const year = date.format('YYYY');
     const month = date.format('MM');
     const day = date.format('DD');
-    let messages = [];
+    let messages: Array<Message> = [];
 
     const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
     request(url, (err, res, body) => {
@@ -24,7 +25,6 @@ export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callba
         } else {
             const $ = cheerio.load(body);
             const monologueElements = $('div.monologue');
-            
             // Each monologue block is a group of messages by one user. It contains user info and message objects.
             monologueElements.each((monologueIndex, monologueElement) => {
                 const userId = getUserId(monologueElement, $);
@@ -42,7 +42,13 @@ export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callba
                     
                     // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
                     if (messageText !== undefined) {
-                        const message = new Message(messageId, userId, roomId, messageText, date, responseMessageId, stars);
+                        const message: Message =  { message_id: messageId, 
+                                                    user_id: userId, 
+                                                    response_message_id: responseMessageId, 
+                                                    room_id: roomId, 
+                                                    text: messageText, 
+                                                    datetime: timestamp, 
+                                                    stars: stars };
                         messages.push(message);
                     }                    
                 })
@@ -79,12 +85,14 @@ function getMessageText(messageElement: CheerioElement, $: CheerioStatic) {
     }
 }
 
-// Extracts response id from classname. Messages that arent a response, stay undefined.
+// Extracts response id from classname. Messages that arent a response, stay null.
 function getResponseId(messageElement: CheerioElement, $: CheerioStatic): number {
     if ( $(messageElement).children().is('a.reply-info')) {
         const responseIdClass = $(messageElement).children('a.reply-info').attr('href');
         const responseId = responseIdClass.split('#')[1];
         return parseInt(responseId);
+    } else {
+        return null;
     }
 }
 

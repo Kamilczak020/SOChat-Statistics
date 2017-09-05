@@ -14,6 +14,7 @@ class RoomRouter {
     // Define routing behavior and attach db queries
     init() {
         this.router.get('/', roomQueries_1.getAllRooms);
+        this.router.get('/:id/update', roomQueries_1.postScrapeData);
     }
 }
 exports.RoomRouter = RoomRouter;

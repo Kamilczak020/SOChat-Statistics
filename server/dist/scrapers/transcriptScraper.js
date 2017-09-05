@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const request = require("request");
 const cheerio = require("cheerio");
-const messageModel_1 = require("../models/messageModel");
 const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
 /**
  *
@@ -11,6 +10,7 @@ const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
  * @param callback The callback
  */
 function scrapeTranscriptPage(roomId, date, callback) {
+    const timestamp = date.format('YYYY-MM-DD');
     const year = date.format('YYYY');
     const month = date.format('MM');
     const day = date.format('DD');
@@ -37,7 +37,13 @@ function scrapeTranscriptPage(roomId, date, callback) {
                     const responseMessageId = getResponseId(messageElement, $);
                     // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
                     if (messageText !== undefined) {
-                        const message = new messageModel_1.Message(messageId, userId, roomId, messageText, date, responseMessageId, stars);
+                        const message = { message_id: messageId,
+                            user_id: userId,
+                            response_message_id: responseMessageId,
+                            room_id: roomId,
+                            text: messageText,
+                            datetime: timestamp,
+                            stars: stars };
                         messages.push(message);
                     }
                 });
@@ -71,12 +77,15 @@ function getMessageText(messageElement, $) {
         return content.contents().text();
     }
 }
-// Extracts response id from classname. Messages that arent a response, stay undefined.
+// Extracts response id from classname. Messages that arent a response, stay null.
 function getResponseId(messageElement, $) {
     if ($(messageElement).children().is('a.reply-info')) {
         const responseIdClass = $(messageElement).children('a.reply-info').attr('href');
         const responseId = responseIdClass.split('#')[1];
         return parseInt(responseId);
+    }
+    else {
+        return null;
     }
 }
 // Extracts stars count from classname. For messages without stars returns 0.

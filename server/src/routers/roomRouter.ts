@@ -1,5 +1,6 @@
+import * as moment from 'moment';
 import { Router, Request, Response, NextFunction } from 'express';
-import { getAllRooms } from '../queries/roomQueries';
+import { getAllRooms, postScrapeData } from '../queries/roomQueries';
 
 /**
  * Router used for '/rooms' route, providing access
@@ -16,6 +17,7 @@ export class RoomRouter {
     // Define routing behavior and attach db queries
     init() {
         this.router.get('/', getAllRooms);
+        this.router.get('/:id/update', postScrapeData);
     }
 }
 
