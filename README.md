@@ -1,8 +1,8 @@
-## Stack Overflow Chat Statistics
+# Stack Overflow Chat Statistics
 Full stack statistics application for Stack Overflow's Chat.
 Wether it's 'panini' or 'border-radius' that you would like to query the transcript for, we have it all.
 
-# Getting Started - Server (API)
+## Getting Started - Server (API)
 The REST API is built on Node.js, with PostgreSQL for database as default.
 
 To begin, simply clone the repo with:
@@ -27,5 +27,31 @@ cd your-dirname
 npm install
 ```
 
-# Configuring database with dbconfig.json
+##### Configuring database with dbconfig.json
+To use the API properly, your server folder has to contain dbconfig.json at its' root.
+The example config is as follows (all following fields are required):
+```
+{
+    host: "localhost",
+    port: 5432,
+    database: "sochat",
+    user: "postgres",
+    password: "123456789"
+}
+```
 
+##### API Endpoints
+
+This API features following endpoints and HTTP methods:
+```
+GET /rooms - returns an array of all rooms 
+GET /rooms/:id - returns information on a room with given ID
+GET /rooms/:id/messages - returns an array of all messages from a room with given ID
+POST /rooms/:id/update - fires an update for a given room ID
+
+GET /users  - returns an array of all users
+GET /users/:id - returns information on a user given his ID
+```
+
+## Credits
+Credit for the original idea goes to StackOverflow user FrostyFire(JABFreeware).
