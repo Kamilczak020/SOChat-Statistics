@@ -28,6 +28,15 @@ cd your-dirname
 npm install
 ```
 
+##### Setting up data tables in PostgreSQL
+You need to have a properly set up PostgreSQL database to run the API.
+You can do so by running the sochat.sql file, located at the server root directory.
+```
+psql createdb your-db-name -U your-username // If you have a database already, skip this.
+psql -d your-db-name -U your-username -f your-path/sochat.sql
+``` 
+
+
 ##### Configuring database with dbconfig.json
 To use the API properly, your server folder has to contain dbconfig.json at its' root.
 The example config is as follows (all following fields are required):
