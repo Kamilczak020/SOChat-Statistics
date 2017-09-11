@@ -1,21 +1,10 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const promise = require("bluebird");
-const pgPromise = require("pg-promise");
 const moment = require("moment");
 const transcriptScraper_1 = require("../scrapers/transcriptScraper");
-// Init & connection options
-const connectionJSON = require('../../dbconfig.json');
-const connectionOptions = connectionJSON;
-const initOptions = {
-    promiseLib: promise,
-};
-// Instantiate pg-promise with bluebird
-let pgp = pgPromise(initOptions);
-// Create db connection with connection string
-let db = pgp(connectionOptions);
+const dbContext_1 = require("./dbContext");
 function getAllRooms(req, res, next) {
-    db.any('SELECT * FROM rooms')
+    dbContext_1.database.any('SELECT * FROM rooms')
         .then((data) => {
         let roomCount = data.length;
         res.status(200)
@@ -32,7 +21,7 @@ function getAllRooms(req, res, next) {
 exports.getAllRooms = getAllRooms;
 function getRoomById(req, res, next) {
     let roomId = parseInt(req.params.id);
-    db.one('SELECT * FROM rooms WHERE room_id = $1', roomId)
+    dbContext_1.database.one('SELECT * FROM rooms WHERE room_id = $1', roomId)
         .then((data) => {
         res.status(200)
             .json({
@@ -55,7 +44,7 @@ function postScrapeData(req, res, next) {
             throw new scrapeError;
         }
         // Insert users into the db, omit copies
-        db.tx(t => {
+        dbContext_1.database.tx(t => {
             let queries = [];
             scrapeData.forEach((element) => {
                 const query = t.none('INSERT INTO users(user_id, name) VALUES ($1, $2) ' +
@@ -67,7 +56,7 @@ function postScrapeData(req, res, next) {
             .catch((err) => {
             console.log(err);
         });
-        db.tx(t => {
+        dbContext_1.database.tx(t => {
             let queries = [];
             scrapeData.forEach((element) => {
                 const query = t.none('INSERT INTO rooms(room_id) VALUES ($1) ' +

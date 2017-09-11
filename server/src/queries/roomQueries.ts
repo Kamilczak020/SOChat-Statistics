@@ -3,19 +3,7 @@ import * as pgPromise from 'pg-promise';
 import * as moment from 'moment';
 import { Request, Response, NextFunction } from 'express';
 import { scrapeTranscriptPage } from '../scrapers/transcriptScraper';
-
-// Init & connection options
-const connectionJSON = require('../../dbconfig.json');
-const connectionOptions = connectionJSON;
-const initOptions = {
-    promiseLib: promise,
-};
-
-// Instantiate pg-promise with bluebird
-let pgp = pgPromise(initOptions);
-
-// Create db connection with connection string
-let db = pgp(connectionOptions);
+import { database as db, pgpromise as pgp} from './dbContext';
 
 export function getAllRooms(req: Request, res: Response, next: NextFunction) {
     db.any('SELECT * FROM rooms')

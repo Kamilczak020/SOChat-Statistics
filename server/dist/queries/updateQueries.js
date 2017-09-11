@@ -1,19 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-const promise = require("bluebird");
-const pgPromise = require("pg-promise");
 const moment = require("moment");
 const transcriptScraper_1 = require("../scrapers/transcriptScraper");
-// Init & connection options
-const connectionJSON = require('../../dbconfig.json');
-const connectionOptions = connectionJSON;
-const initOptions = {
-    promiseLib: promise,
-};
-// Instantiate pg-promise with bluebird
-let pgp = pgPromise(initOptions);
-// Create db connection with connection string
-let db = pgp(connectionOptions);
+const dbContext_1 = require("./dbContext");
 function postFromScrapeData(req, res, next) {
     const roomId = parseInt(req.params.id);
     const timestampQuery = req.query.timestamp;
@@ -73,7 +62,7 @@ exports.postFromScrapeData = postFromScrapeData;
 // Promises
 function getPromises(queries) {
     const promises = queries.map((query) => {
-        return db.none(query);
+        return dbContext_1.database.none(query);
     });
     return promises;
 }
@@ -81,7 +70,7 @@ function getPromises(queries) {
 function getUsersQueries(scrapeData) {
     let queries = [];
     scrapeData.forEach((msg) => {
-        const query = new pgp.ParameterizedQuery(`INSERT INTO users(
+        const query = new dbContext_1.pgpromise.ParameterizedQuery(`INSERT INTO users(
                 user_id, 
                 name) 
             VALUES($1, $2) 
@@ -94,7 +83,7 @@ function getUsersQueries(scrapeData) {
 function getRoomsQueries(scrapeData) {
     let queries = [];
     scrapeData.forEach((msg) => {
-        const query = new pgp.ParameterizedQuery(`INSERT INTO rooms(room_id) 
+        const query = new dbContext_1.pgpromise.ParameterizedQuery(`INSERT INTO rooms(room_id) 
             VALUES($1) 
             ON CONFLICT(room_id) 
             DO NOTHING`, [msg.room_id]);
@@ -105,7 +94,7 @@ function getRoomsQueries(scrapeData) {
 function getRoomsUsersQueries(scrapeData) {
     let queries = [];
     scrapeData.forEach((msg) => {
-        const query = new pgp.ParameterizedQuery(`INSERT INTO roomsusers(
+        const query = new dbContext_1.pgpromise.ParameterizedQuery(`INSERT INTO roomsusers(
                 room_id, 
                 user_id) 
             VALUES($1, $2) 
@@ -121,7 +110,7 @@ function getRoomsUsersQueries(scrapeData) {
 function getMessagesQueries(scrapeData) {
     let queries = [];
     scrapeData.forEach((msg) => {
-        const query = new pgp.ParameterizedQuery(`INSERT INTO messages(
+        const query = new dbContext_1.pgpromise.ParameterizedQuery(`INSERT INTO messages(
                 message_id, 
                 user_id, 
                 room_id, 

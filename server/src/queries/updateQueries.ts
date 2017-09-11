@@ -4,19 +4,8 @@ import * as moment from 'moment';
 import { Request, Response, NextFunction } from 'express';
 import { scrapeTranscriptPage } from '../scrapers/transcriptScraper';
 import { Message } from '../models/messageModel';
+import { database as db, pgpromise as pgp} from './dbContext';
 
-// Init & connection options
-const connectionJSON = require('../../dbconfig.json');
-const connectionOptions = connectionJSON;
-const initOptions = {
-    promiseLib: promise,
-};
-
-// Instantiate pg-promise with bluebird
-let pgp = pgPromise(initOptions);
-
-// Create db connection with connection string
-let db = pgp(connectionOptions);
 
 export function postFromScrapeData(req: Request, res: Response, next: NextFunction) {
     const roomId = parseInt(req.params.id);
