@@ -16,10 +16,29 @@ let pgp = pgPromise(initOptions);
 let db = pgp(connectionOptions);
 function postFromScrapeData(req, res, next) {
     const roomId = parseInt(req.params.id);
-    const date = moment('2017/08/31', 'YYYY/MM/DD');
-    transcriptScraper_1.scrapeTranscriptPage(roomId, date, (scrapeError, scrapeData) => {
+    const timestampQuery = req.query.timestamp;
+    // Check if timestamp is correct, if not return 400
+    if (!moment(timestampQuery, "YYYY-MM-DD", true).isValid()) {
+        res.status(400)
+            .json({
+            status: 'error',
+            message: `Provided timestamp: ${timestampQuery} is invalid`
+        });
+        return;
+    }
+    // Convert query timestamp string to a moment 
+    const timestamp = moment(timestampQuery, "YYYY-MM-DD");
+    // Run the scraper and provide results
+    transcriptScraper_1.scrapeTranscriptPage(roomId, timestamp, (scrapeError, scrapeData) => {
         if (scrapeError) {
             console.log(scrapeError);
+            res.status(500)
+                .json({
+                status: 'error',
+                message: 'The server encountered an unexpected condition during scraping, \
+                        that prevented it from fullfilling the request.'
+            });
+            return;
         }
         // Build our queries arrays based on scrape data
         const roomsQueries = getRoomsQueries(scrapeData);
@@ -35,11 +54,18 @@ function postFromScrapeData(req, res, next) {
             res.status(200)
                 .json({
                 status: 'success',
-                message: `scrape data for ${date} inserted sucessfully.`
+                message: `Scrape data for ${timestamp} inserted sucessfully.`
             });
         })
             .catch((error) => {
             console.log(error);
+            res.status(500)
+                .json({
+                status: 'error',
+                message: 'The server encountered an unexpected condition, \
+                        that prevented it from fullfilling the request.'
+            });
+            return;
         });
     });
 }
