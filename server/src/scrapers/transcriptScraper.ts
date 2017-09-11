@@ -39,15 +39,16 @@ export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callba
 
                     // Optional parameters (not all messages are responses)
                     const responseMessageId = getResponseId(messageElement, $);
-                    
+
                     // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
                     if (messageText !== undefined) {
                         const message: Message =  { message_id: messageId, 
                                                     user_id: userId, 
-                                                    response_message_id: responseMessageId, 
+                                                    username: username,
+                                                    response_id: responseMessageId, 
                                                     room_id: roomId, 
-                                                    text: messageText, 
-                                                    datetime: timestamp, 
+                                                    body: messageText, 
+                                                    timestamp: timestamp, 
                                                     stars: stars };
                         messages.push(message);
                     }                    
@@ -76,7 +77,7 @@ function getMessageId(messageElement: CheerioElement, $: CheerioStatic): number 
 // Extracts message text from the content div.
 function getMessageText(messageElement: CheerioElement, $: CheerioStatic) {
     const content = $(messageElement).children('div.content');
-
+    
     // In case of onebox messages, return undefined.
     if ($(content).children().is('div.onebox')) {
         return undefined;
@@ -99,9 +100,9 @@ function getResponseId(messageElement: CheerioElement, $: CheerioStatic): number
 // Extracts stars count from classname. For messages without stars returns 0.
 function getStars(messageElement: CheerioElement, $: CheerioStatic): number {
     if ( $(messageElement).children('span.flash').children().is('span.stars')) {
-        const starsElement = $(messageElement).find('span.stars').children('span.times')
+        const starsElement = $(messageElement).find('span.stars').children('span.times');
         const stars = starsElement.first().text();
-        return parseInt(stars);
+        return stars === '' ? 1 : parseInt(stars); 
     } else {
         return 0;
     }

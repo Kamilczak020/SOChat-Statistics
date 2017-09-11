@@ -39,10 +39,11 @@ function scrapeTranscriptPage(roomId, date, callback) {
                     if (messageText !== undefined) {
                         const message = { message_id: messageId,
                             user_id: userId,
-                            response_message_id: responseMessageId,
+                            username: username,
+                            response_id: responseMessageId,
                             room_id: roomId,
-                            text: messageText,
-                            datetime: timestamp,
+                            body: messageText,
+                            timestamp: timestamp,
                             stars: stars };
                         messages.push(message);
                     }
@@ -93,7 +94,7 @@ function getStars(messageElement, $) {
     if ($(messageElement).children('span.flash').children().is('span.stars')) {
         const starsElement = $(messageElement).find('span.stars').children('span.times');
         const stars = starsElement.first().text();
-        return parseInt(stars);
+        return stars === '' ? 1 : parseInt(stars);
     }
     else {
         return 0;

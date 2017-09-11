@@ -50,7 +50,7 @@ export function getRoomById(req: Request, res: Response, next: NextFunction) {
 }
 
 export function postScrapeData(req: Request, res: Response, next: NextFunction) {
-    const roomId = 17;
+    const roomId = parseInt(req.params.id);
     const date = moment('2017/08/31', 'YYYY/MM/DD');
     scrapeTranscriptPage(roomId, date, (scrapeError, scrapeData) => {
         if (scrapeError) {
@@ -58,27 +58,31 @@ export function postScrapeData(req: Request, res: Response, next: NextFunction) 
             throw new scrapeError;
         }
 
-        // Generate an instert query from our array.
-        const query = pgp.helpers.insert(scrapeData, ['message_id', 'user_id', 'response_message_id',
-            'room_id', 'text', 'datetime', 'stars'], 'messages');
+        // Insert users into the db, omit copies
+        db.tx(t => {
+            let queries = [];
+            scrapeData.forEach((element) => {
+                const query = t.none('INSERT INTO users(user_id, name) VALUES ($1, $2) ' +
+                    'ON CONFLICT (user_id) DO NOTHING', [element.user_id, element.username]);
+                queries.push(query);
+            })
+            return t.batch(queries);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
 
-        const obj = {
-            resp: null,
-            star: 0
-        };
-        db.none("INSERT INTO users(user_id, name) VALUES(123, 'kamil')");
-        db.none("INSERT INTO rooms(room_id, name, description) VALUES(15, 'myroom', 'this is stupid')");
-        db.none("INSERT INTO messages(message_id, user_id, response_message_id, room_id, text, datetime, stars) VALUES(123, 123, ${resp}, 15, 'wolololo', '2017-08-30', ${star})", obj)    
-        .then((data) => {
-                res.status(200)
-                    .json({
-                        status: 'sucess',
-                        data: data,
-                        message: 'wow it works somehow'
-                    })
+        db.tx(t => {
+            let queries = [];
+            scrapeData.forEach((element) => {
+                const query = t.none('INSERT INTO rooms(room_id) VALUES ($1) ' +
+                    'ON CONFLICT (room_id) DO NOTHING', [element.room_id]);
+                queries.push(query);
             })
-            .catch((err) => {
-                return next(err);
-            })
+            return t.batch(queries);
+        })
+        .catch((err) => {
+            console.log(err);
+        })
     })
 }

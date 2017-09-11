@@ -3,6 +3,7 @@ import * as express from 'express';
 import * as logger from 'morgan';
 import * as bodyParser from 'body-parser';
 import RoomRouter from './routers/roomRouter';
+import UpdateRouter from './routers/updateRouter';
 
 // Creates and configures an ExpressJS web server.
 class App {
@@ -35,6 +36,7 @@ class App {
     });
     this.express.use('/', router);
     this.express.use('/rooms', RoomRouter)
+    this.express.use('/update', UpdateRouter)
   }
 }
 
