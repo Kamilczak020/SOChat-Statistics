@@ -2,7 +2,6 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const roomQueries_1 = require("../queries/roomQueries");
-const passport_1 = require("../authentication/passport");
 /**
  * Router used for '/rooms' route, providing access
  * to all stored rooms and particular room info.
@@ -14,13 +13,7 @@ class RoomRouter {
     }
     // Define routing behavior and attach db queries
     init() {
-        this.router.get('/', passport_1.passport.authenticate('localapikey', { session: false }), roomQueries_1.getAllRooms);
-        this.router.get('/:id/update', roomQueries_1.postScrapeData);
-        this.router.get('/test', passport_1.passport.authenticate('localapikey', { session: false }), (req, res) => {
-            res.json({
-                message: 'nonce'
-            });
-        });
+        this.router.get('/', roomQueries_1.getAllRooms);
     }
 }
 exports.RoomRouter = RoomRouter;

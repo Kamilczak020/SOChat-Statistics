@@ -41,7 +41,7 @@ class App {
         })
     })
     });
-    this.express.use('/', passport.authenticate('localapikey', {session: false}), router);
+    this.express.use('/', router);
     this.express.use('/rooms', RoomRouter);
     this.express.use('/update', passport.authenticate('localapikey', {session: false}), UpdateRouter);
   }

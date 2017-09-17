@@ -3,8 +3,8 @@ import * as pgPromise from 'pg-promise';
 import * as moment from 'moment';
 import { Request, Response, NextFunction } from 'express';
 import { scrapeTranscriptPage } from '../scrapers/transcriptScraper';
-import { Message } from '../models/messageModel';
 import { database as db, pgpromise as pgp } from './dbContext';
+import { Message } from '../models/messageModel';
 
 
 export function postFromScrapeData(req: Request, res: Response, next: NextFunction) {
