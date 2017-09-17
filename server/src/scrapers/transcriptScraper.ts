@@ -11,12 +11,12 @@ const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
  * @param date Date of the transcript page to scrape. Only takes into account Day, Month and Year
  * @param callback The callback
  */
-export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callback: (err: any, data: Array<Message>) => void): void {
+export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callback: (err: any, data: Message[]) => void): void {
     const timestamp = date.format('YYYY-MM-DD');
     const year = date.format('YYYY');
     const month = date.format('MM');
     const day = date.format('DD');
-    let messages: Array<Message> = [];
+    let messages: Message[] = [];
 
     const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
     request(url, (err, res, body) => {

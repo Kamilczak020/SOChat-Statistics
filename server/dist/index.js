@@ -2,15 +2,17 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const http = require("http");
 const debug = require("debug");
-const dbconfigValidator_1 = require("./validators/dbconfigValidator");
+const configValidator_1 = require("./validators/configValidator");
 const App_1 = require("./App");
 debug('ts-express:server');
-// Validate db config schema before starting the server
-let dbconfig = require('../dbconfig.json');
-if (!dbconfigValidator_1.validateDbConfig(dbconfig)) {
-    console.log("dbconfig.json is invalid.");
-}
-else {
+// Run Config Validator check
+configValidator_1.validateConfigs((res) => {
+    if (res) {
+        run();
+    }
+});
+// If valid, run server.
+function run() {
     console.log('Database config valid, starting server...');
     const port = normalizePort(process.env.PORT || 3000);
     App_1.default.set('port', port);
@@ -28,8 +30,9 @@ else {
             return false;
     }
     function onError(error) {
-        if (error.syscall !== 'listen')
+        if (error.syscall !== 'listen') {
             throw error;
+        }
         let bind = (typeof port === 'string') ? 'Pipe ' + port : 'Port ' + port;
         switch (error.code) {
             case 'EACCES':

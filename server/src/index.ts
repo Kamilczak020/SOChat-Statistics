@@ -1,19 +1,19 @@
 import * as http from 'http';
 import * as debug from 'debug';
-import { validateDbConfig } from './validators/dbconfigValidator';
+import { validateConfigs } from './validators/configValidator';
 
 import App from './App';
 
 debug('ts-express:server');
 
-// Validate db config schema before starting the server
-let dbconfig = require('../dbconfig.json');
-
-if (!validateDbConfig(dbconfig)) {
-    console.log("dbconfig.json is invalid.")
-}
+// Run Config Validator check
+validateConfigs((res) => {
+    if (res) {
+        run();
+    }
+})
 // If valid, run server.
-else {
+function run() {
     console.log('Database config valid, starting server...')
     const port = normalizePort(process.env.PORT || 3000);
     App.set('port', port);
@@ -32,7 +32,9 @@ else {
     }
 
     function onError(error: NodeJS.ErrnoException): void {
-        if (error.syscall !== 'listen') throw error;
+        if (error.syscall !== 'listen') {
+            throw error;
+        }
         let bind = (typeof port === 'string') ? 'Pipe ' + port : 'Port ' + port;
         
         switch(error.code) {

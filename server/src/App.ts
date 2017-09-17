@@ -4,6 +4,7 @@ import * as logger from 'morgan';
 import * as bodyParser from 'body-parser';
 import RoomRouter from './routers/roomRouter';
 import UpdateRouter from './routers/updateRouter';
+import { passport } from './authentication/passport';
 
 // Creates and configures an ExpressJS web server.
 class App {
@@ -23,6 +24,7 @@ class App {
     this.express.use(logger('dev'));
     this.express.use(bodyParser.json());
     this.express.use(bodyParser.urlencoded({ extended: false }));
+    this.express.use(passport.initialize());
   }
 
   // Configure API endpoints.
@@ -33,10 +35,15 @@ class App {
       res.json({
         message: 'Hello World!'
       });
+    router.get('/cars', (req, res, next) => {
+        res.json({
+            message: 'wpw'
+        })
+    })
     });
-    this.express.use('/', router);
-    this.express.use('/rooms', RoomRouter)
-    this.express.use('/update', UpdateRouter)
+    this.express.use('/', passport.authenticate('localapikey', {session: false}), router);
+    this.express.use('/rooms', RoomRouter);
+    this.express.use('/update', passport.authenticate('localapikey', {session: false}), UpdateRouter);
   }
 }
 

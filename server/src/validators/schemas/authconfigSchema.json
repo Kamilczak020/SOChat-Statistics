@@ -1,0 +1,10 @@
+{
+    "id": "/AuthSchema",
+    "type": "object",
+    "properties": {
+        "apikey": { "type": "string" }
+    },
+    "required": [
+        "apikey"
+    ]
+}

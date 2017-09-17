@@ -1,6 +1,6 @@
 import * as promise from 'bluebird';
-import { IDatabase, IMain } from 'pg-promise';
 import * as pgPromise from 'pg-promise';
+import { IDatabase, IMain } from 'pg-promise';
 
 class DatabaseContext {
     public database: IDatabase<any>;
@@ -8,7 +8,7 @@ class DatabaseContext {
 
     constructor() {
         // Init & connection options
-        const connectionJSON = require('../../dbconfig.json');
+        const connectionJSON = require('../../configs/dbconfig.json');
         const connectionOptions = connectionJSON;
         const initOptions = {
             promiseLib: promise,
