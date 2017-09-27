@@ -11,7 +11,7 @@ const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
  * @param date Date of the transcript page to scrape. Only takes into account Day, Month and Year
  * @param callback The callback
  */
-export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callback: (err: any, data: Message[]) => void): void {
+export async function scrapeTranscriptPage(roomId: number, date: moment.Moment): Promise<Message[]> {
     const timestamp = date.format('YYYY-MM-DD');
     const year = date.format('YYYY');
     const month = date.format('MM');
@@ -19,44 +19,49 @@ export function scrapeTranscriptPage(roomId: number, date: moment.Moment, callba
     let messages: Message[] = [];
 
     const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
-    request(url, (err, res, body) => {
-        if (err) {
-            callback(err, null);
-        } else {
-            const $ = cheerio.load(body);
-            const monologueElements = $('div.monologue');
-            // Each monologue block is a group of messages by one user. It contains user info and message objects.
-            monologueElements.each((monologueIndex, monologueElement) => {
-                const userId = getUserId(monologueElement, $);
-                const username = $(monologueElement).find('div.username').children('a').attr('title');
-                const messageElements = $(monologueElement).find('div.message');
-                
-                // Each single message contains *only* message-specific information.
-                messageElements.each((messageIndex, messageElement) => {
-                    const messageId = getMessageId(messageElement, $);
-                    const messageText = getMessageText(messageElement, $);
-                    const stars = getStars(messageElement, $);
+    return new Promise<Message[]>((resolve, reject) => {
+        request(url, (err, res, body) => {
+            if (err) {
+                return reject(err);
+            } else {
+                const $ = cheerio.load(body);
+                const monologueElements = $('div.monologue');
+                // Each monologue block is a group of messages by one user. It contains user info and message objects.
+                monologueElements.each((monologueIndex, monologueElement) => {
+                    const userId = getUserId(monologueElement, $);
+                    const username = $(monologueElement).find('div.username').children('a').attr('title');
+                    const messageElements = $(monologueElement).find('div.message');
+                    
+                    // Each single message contains *only* message-specific information.
+                    messageElements.each((messageIndex, messageElement) => {
+                        const messageId = getMessageId(messageElement, $);
+                        const messageText = getMessageText(messageElement, $);
+                        const stars = getStars(messageElement, $);
 
-                    // Optional parameters (not all messages are responses)
-                    const responseMessageId = getResponseId(messageElement, $);
+                        // Optional parameter (not all messages are responses)
+                        const responseMessageId = getResponseId(messageElement, $);
 
-                    // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
-                    if (messageText !== undefined) {
-                        const message: Message =  { message_id: messageId, 
-                                                    user_id: userId, 
-                                                    username: username,
-                                                    response_id: responseMessageId, 
-                                                    room_id: roomId, 
-                                                    body: messageText, 
-                                                    timestamp: timestamp, 
-                                                    stars: stars };
-                        messages.push(message);
-                    }                    
+                        // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
+                        if (messageText !== undefined) {
+                            const message: Message =  { 
+                                message_id: messageId, 
+                                user_id: userId, 
+                                username: username,
+                                response_id: responseMessageId, 
+                                room_id: roomId, 
+                                body: messageText, 
+                                timestamp: timestamp, 
+                                stars: stars
+                            };
+
+                            messages.push(message);
+                        }                    
+                    })
                 })
-            })
-            // Fire a callback with results
-            callback(null, messages);
-        }   
+                // Return sucessful with results
+                return resolve(messages);
+            }   
+        })
     })
 }
 

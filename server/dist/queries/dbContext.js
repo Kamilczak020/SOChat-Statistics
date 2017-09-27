@@ -11,7 +11,8 @@ class DatabaseContext {
             promiseLib: promise,
         };
         // Instantiate pg-promise with bluebird
-        let pgp = pgPromise(initOptions);
+        const pgp = pgPromise(initOptions);
+        this.pgpromise = pgp;
         this.database = pgp(connectionOptions);
     }
 }

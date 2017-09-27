@@ -1,34 +1,29 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const moment = require("moment");
 const transcriptScraper_1 = require("../scrapers/transcriptScraper");
 const dbContext_1 = require("./dbContext");
-function postFromScrapeData(req, res, next) {
-    const roomId = parseInt(req.params.id);
-    const timestampQuery = req.query.timestamp;
-    // Check if timestamp is correct, if not return 400
-    if (!moment(timestampQuery, "YYYY-MM-DD", true).isValid()) {
-        res.status(400)
-            .json({
-            status: 'error',
-            message: `Provided timestamp: ${timestampQuery} is invalid`
-        });
-        return;
-    }
-    // Convert query timestamp string to a moment 
-    const timestamp = moment(timestampQuery, "YYYY-MM-DD");
-    // Run the scraper and provide results
-    transcriptScraper_1.scrapeTranscriptPage(roomId, timestamp, (scrapeError, scrapeData) => {
-        if (scrapeError) {
-            console.log(scrapeError);
-            res.status(500)
-                .json({
-                status: 'error',
-                message: 'The server encountered an unexpected condition during scraping, \
-                        that prevented it from fullfilling the request.'
-            });
-            return;
+const routerErrors_1 = require("../errors/routerErrors");
+function postFromScrapeData(req) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const roomId = parseInt(req.params.roomid);
+        const timestampQuery = req.query.timestamp;
+        // Convert query timestamp string to a moment 
+        const timestamp = moment(timestampQuery, "YYYY-MM-DD");
+        // Check if timestamp is correct, if not return 400
+        if (!timestamp.isValid()) {
+            throw new routerErrors_1.InvalidQueryError('Timestamp is invalid');
         }
+        // Run the scraper and provide results
+        const scrapeData = yield transcriptScraper_1.scrapeTranscriptPage(roomId, timestamp);
         // Build our queries arrays based on scrape data
         const roomsQueries = getRoomsQueries(scrapeData);
         const usersQueries = getUsersQueries(scrapeData);
@@ -40,21 +35,10 @@ function postFromScrapeData(req, res, next) {
             .then(() => Promise.all(getPromises(roomsUsersQueries)))
             .then(() => Promise.all(getPromises(messagesQueries)))
             .then(() => {
-            res.status(200)
-                .json({
+            return {
                 status: 'success',
                 message: `Scrape data for ${timestamp} inserted sucessfully.`
-            });
-        })
-            .catch((error) => {
-            console.log(error);
-            res.status(500)
-                .json({
-                status: 'error',
-                message: 'The server encountered an unexpected condition, \
-                        that prevented it from fullfilling the request.'
-            });
-            return;
+            };
         });
     });
 }

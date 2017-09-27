@@ -4,72 +4,46 @@ import * as moment from 'moment';
 import { Request, Response, NextFunction } from 'express';
 import { scrapeTranscriptPage } from '../scrapers/transcriptScraper';
 import { database as db, pgpromise as pgp } from './dbContext';
+import { InvalidQueryError, NotFoundError } from '../errors/routerErrors';
 import { Message } from '../models/messageModel';
 
 
-export function postFromScrapeData(req: Request, res: Response, next: NextFunction) {
-    const roomId = parseInt(req.params.id);
+export async function postFromScrapeData(req: Request) {
+    const roomId = parseInt(req.params.roomid);
     const timestampQuery = req.query.timestamp;
-
-    // Check if timestamp is correct, if not return 400
-    if (!moment(timestampQuery, "YYYY-MM-DD", true).isValid()) {
-        res.status(400)
-            .json({
-                status: 'error',
-                message: `Provided timestamp: ${timestampQuery} is invalid`
-            })
-        return;
-    }
 
     // Convert query timestamp string to a moment 
     const timestamp = moment(timestampQuery, "YYYY-MM-DD");
 
-    // Run the scraper and provide results
-    scrapeTranscriptPage(roomId, timestamp, (scrapeError, scrapeData) => {
-        if (scrapeError) {
-            console.log(scrapeError);
-            res.status(500)
-                .json({
-                    status: 'error',
-                    message: 'The server encountered an unexpected condition during scraping, \
-                        that prevented it from fullfilling the request.'
-                })
-            return;
-        }
+    // Check if timestamp is correct, if not return 400
+    if (!timestamp.isValid()) {
+        throw new InvalidQueryError('Timestamp is invalid');
+    }    
 
-        // Build our queries arrays based on scrape data
-        const roomsQueries = getRoomsQueries(scrapeData);
-        const usersQueries = getUsersQueries(scrapeData);
-        const roomsUsersQueries = getRoomsUsersQueries(scrapeData);
-        const messagesQueries = getMessagesQueries(scrapeData);
-        
-        // Execute promises
-        Promise.all(getPromises(roomsQueries))
-        .then(() => Promise.all(getPromises(usersQueries)))
-        .then(() => Promise.all(getPromises(roomsUsersQueries)))
-        .then(() => Promise.all(getPromises(messagesQueries)))
-        .then(() => {
-            res.status(200)
-                .json({
-                    status: 'success',
-                    message: `Scrape data for ${timestamp} inserted sucessfully.`
-                });
-        })
-        .catch((error) => {
-            console.log(error);
-            res.status(500)
-                .json({
-                    status: 'error',
-                    message: 'The server encountered an unexpected condition, \
-                        that prevented it from fullfilling the request.'
-                })
-            return;
-        })
+    // Run the scraper and provide results
+    const scrapeData = await scrapeTranscriptPage(roomId, timestamp);
+
+    // Build our queries arrays based on scrape data
+    const roomsQueries = getRoomsQueries(scrapeData);
+    const usersQueries = getUsersQueries(scrapeData);
+    const roomsUsersQueries = getRoomsUsersQueries(scrapeData);
+    const messagesQueries = getMessagesQueries(scrapeData);
+    
+    // Execute promises
+    Promise.all(getPromises(roomsQueries))
+    .then(() => Promise.all(getPromises(usersQueries)))
+    .then(() => Promise.all(getPromises(roomsUsersQueries)))
+    .then(() => Promise.all(getPromises(messagesQueries)))
+    .then(() => {
+        return {
+            status: 'success',
+            message: `Scrape data for ${timestamp} inserted sucessfully.`
+        };
     })
 }
 
 // Promises
-function getPromises(queries: Array<pgPromise.ParameterizedQuery>): Promise<null>[] {
+function getPromises(queries: pgPromise.ParameterizedQuery[]): Promise<null>[] {
     const promises = queries.map((query) => {
         return db.none(query);
     })
@@ -77,7 +51,7 @@ function getPromises(queries: Array<pgPromise.ParameterizedQuery>): Promise<null
 }
 
 // Queries for promises
-function getUsersQueries(scrapeData: Array<Message>): Array<pgPromise.ParameterizedQuery> {
+function getUsersQueries(scrapeData: Message[]): pgPromise.ParameterizedQuery[] {
     let queries = [];
     scrapeData.forEach((msg) => {
         const query = new pgp.ParameterizedQuery(
@@ -88,12 +62,13 @@ function getUsersQueries(scrapeData: Array<Message>): Array<pgPromise.Parameteri
             ON CONFLICT(user_id) 
             DO UPDATE SET name = $2`, 
             [msg.user_id, msg.username]);
+        
         queries.push(query);
     })
     return queries;
 }
 
-function getRoomsQueries(scrapeData: Array<Message>): Array<pgPromise.ParameterizedQuery> {
+function getRoomsQueries(scrapeData: Message[]): pgPromise.ParameterizedQuery[] {
     let queries = [];
     scrapeData.forEach((msg) => {
         const query = new pgp.ParameterizedQuery(
@@ -108,7 +83,7 @@ function getRoomsQueries(scrapeData: Array<Message>): Array<pgPromise.Parameteri
     return queries;
 }
 
-function getRoomsUsersQueries(scrapeData: Array<Message>): Array<pgPromise.ParameterizedQuery> {
+function getRoomsUsersQueries(scrapeData: Message[]): pgPromise.ParameterizedQuery[] {
     let queries = [];
     scrapeData.forEach((msg) => {
         const query = new pgp.ParameterizedQuery(
@@ -128,7 +103,7 @@ function getRoomsUsersQueries(scrapeData: Array<Message>): Array<pgPromise.Param
     return queries;
 }
 
-function getMessagesQueries(scrapeData: Array<Message>): Array<pgPromise.ParameterizedQuery> {
+function getMessagesQueries(scrapeData: Message[]): pgPromise.ParameterizedQuery[] {
     let queries = [];
     scrapeData.forEach((msg) => {
         const query = new pgp.ParameterizedQuery(

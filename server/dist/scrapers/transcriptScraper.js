@@ -1,4 +1,12 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 const request = require("request");
 const cheerio = require("cheerio");
@@ -9,49 +17,55 @@ const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
  * @param date Date of the transcript page to scrape. Only takes into account Day, Month and Year
  * @param callback The callback
  */
-function scrapeTranscriptPage(roomId, date, callback) {
-    const timestamp = date.format('YYYY-MM-DD');
-    const year = date.format('YYYY');
-    const month = date.format('MM');
-    const day = date.format('DD');
-    let messages = [];
-    const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
-    request(url, (err, res, body) => {
-        if (err) {
-            callback(err, null);
-        }
-        else {
-            const $ = cheerio.load(body);
-            const monologueElements = $('div.monologue');
-            // Each monologue block is a group of messages by one user. It contains user info and message objects.
-            monologueElements.each((monologueIndex, monologueElement) => {
-                const userId = getUserId(monologueElement, $);
-                const username = $(monologueElement).find('div.username').children('a').attr('title');
-                const messageElements = $(monologueElement).find('div.message');
-                // Each single message contains *only* message-specific information.
-                messageElements.each((messageIndex, messageElement) => {
-                    const messageId = getMessageId(messageElement, $);
-                    const messageText = getMessageText(messageElement, $);
-                    const stars = getStars(messageElement, $);
-                    // Optional parameters (not all messages are responses)
-                    const responseMessageId = getResponseId(messageElement, $);
-                    // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
-                    if (messageText !== undefined) {
-                        const message = { message_id: messageId,
-                            user_id: userId,
-                            username: username,
-                            response_id: responseMessageId,
-                            room_id: roomId,
-                            body: messageText,
-                            timestamp: timestamp,
-                            stars: stars };
-                        messages.push(message);
-                    }
-                });
+function scrapeTranscriptPage(roomId, date) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const timestamp = date.format('YYYY-MM-DD');
+        const year = date.format('YYYY');
+        const month = date.format('MM');
+        const day = date.format('DD');
+        let messages = [];
+        const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
+        return new Promise((resolve, reject) => {
+            request(url, (err, res, body) => {
+                if (err) {
+                    return reject(err);
+                }
+                else {
+                    const $ = cheerio.load(body);
+                    const monologueElements = $('div.monologue');
+                    // Each monologue block is a group of messages by one user. It contains user info and message objects.
+                    monologueElements.each((monologueIndex, monologueElement) => {
+                        const userId = getUserId(monologueElement, $);
+                        const username = $(monologueElement).find('div.username').children('a').attr('title');
+                        const messageElements = $(monologueElement).find('div.message');
+                        // Each single message contains *only* message-specific information.
+                        messageElements.each((messageIndex, messageElement) => {
+                            const messageId = getMessageId(messageElement, $);
+                            const messageText = getMessageText(messageElement, $);
+                            const stars = getStars(messageElement, $);
+                            // Optional parameter (not all messages are responses)
+                            const responseMessageId = getResponseId(messageElement, $);
+                            // If message text is not undefined (meaning that it is not a oneboxed message), push it to model
+                            if (messageText !== undefined) {
+                                const message = {
+                                    message_id: messageId,
+                                    user_id: userId,
+                                    username: username,
+                                    response_id: responseMessageId,
+                                    room_id: roomId,
+                                    body: messageText,
+                                    timestamp: timestamp,
+                                    stars: stars
+                                };
+                                messages.push(message);
+                            }
+                        });
+                    });
+                    // Return sucessful with results
+                    return resolve(messages);
+                }
             });
-            // Fire a callback with results
-            callback(null, messages);
-        }
+        });
     });
 }
 exports.scrapeTranscriptPage = scrapeTranscriptPage;

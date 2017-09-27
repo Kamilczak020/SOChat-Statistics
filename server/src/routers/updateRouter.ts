@@ -1,6 +1,7 @@
 import * as moment from 'moment';
 import { Router, Request, Response, NextFunction } from 'express';
 import { postFromScrapeData } from '../queries/updateQueries';
+import { apiMethod } from './apiMethod';
 
 /**
  * Router used for '/update' route, providing access
@@ -16,7 +17,7 @@ export class UpdateRouter {
 
     // Define routing behavior and attach db queries
     init() {
-        this.router.post('/rooms/:id', postFromScrapeData);
+        this.router.post('/rooms/:roomid', apiMethod(postFromScrapeData));
     }
 }
 
