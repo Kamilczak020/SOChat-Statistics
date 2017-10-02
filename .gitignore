@@ -1,5 +1,5 @@
-server/node_modules/**
-client/node_modules/**
-server/configs/**
+backend/node_modules/**
+frontend/node_modules/**
+backend/configs/**
 .vscode/
 tslint.json
