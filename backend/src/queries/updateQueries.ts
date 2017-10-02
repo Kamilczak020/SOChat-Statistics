@@ -1,10 +1,11 @@
 import * as promise from 'bluebird';
 import * as pgPromise from 'pg-promise';
 import * as moment from 'moment';
+import { to } from '../utility/promiseHelper';
 import { Request, Response, NextFunction } from 'express';
 import { scrapeTranscriptPage } from '../scrapers/transcriptScraper';
 import { database as db, pgpromise as pgp } from './dbContext';
-import { InvalidQueryError, NotFoundError } from '../errors/routerErrors';
+import { InvalidQueryError, NotFoundError, ScrapeError } from '../errors/routerErrors';
 import { Message } from '../models/messageModel';
 
 
@@ -21,7 +22,11 @@ export async function postFromScrapeData(req: Request) {
     }    
 
     // Run the scraper and provide results
-    const scrapeData = await scrapeTranscriptPage(roomId, timestamp);
+    const [err, scrapeData] = await to(scrapeTranscriptPage(roomId, timestamp));
+    
+    if (err) {
+        throw new ScrapeError(err);
+    }
 
     // Build our queries arrays based on scrape data
     const roomsQueries = getRoomsQueries(scrapeData);
@@ -47,6 +52,7 @@ function getPromises(queries: pgPromise.ParameterizedQuery[]): Promise<null>[] {
     const promises = queries.map((query) => {
         return db.none(query);
     })
+    
     return promises;
 }
 

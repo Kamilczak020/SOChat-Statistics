@@ -1,13 +1,18 @@
 import * as promise from 'bluebird';
 import * as pgPromise from 'pg-promise';
 import * as moment from 'moment';
+import { to } from '../utility/promiseHelper';
 import { Request, Response, NextFunction } from 'express';
 import { scrapeTranscriptPage } from '../scrapers/transcriptScraper';
 import { database as db, pgpromise as pgp} from './dbContext';
-import { NotFoundError, InvalidQueryError } from '../errors/routerErrors';
+import { NotFoundError, InvalidQueryError, DatabaseError } from '../errors/routerErrors';
 
 export async function getAllRooms(req: Request) {
-    const data = await db.any('SELECT * FROM rooms')
+    const [err, data] = await to(db.any('SELECT * FROM rooms'));
+    
+    if (err) {
+        throw new DatabaseError(err);
+    }
     
     if (data.length === 0) {
         throw new NotFoundError('No stored rooms were found');
@@ -22,7 +27,11 @@ export async function getAllRooms(req: Request) {
 
 export async function getAllMessages(req: Request) {
     const roomId = parseInt(req.params.roomid);
-    const data = await db.manyOrNone('SELECT * FROM messages WHERE room_id = $1', roomId);
+    const [err, data] = await to(db.manyOrNone('SELECT * FROM messages WHERE room_id = $1', roomId));
+
+    if(err) {
+        throw new DatabaseError(err);
+    }
 
     if (data.length === 0) {
         throw new NotFoundError(`No stored messages for room with id ${roomId} were found`);
@@ -38,7 +47,11 @@ export async function getAllMessages(req: Request) {
 export async function getMessageById(req: Request) {
     const roomId = parseInt(req.params.roomid);
     const messageId = parseInt(req.params.messageid);
-    const data = await db.manyOrNone('SELECT * FROM messages WHERE room_id = $1 AND message_id = $2', [roomId, messageId])
+    const [err, data] = await to(db.manyOrNone('SELECT * FROM messages WHERE room_id = $1 AND message_id = $2', [roomId, messageId]));
+
+    if (err) {
+        throw new DatabaseError(err);
+    }
     
     if (data.length === 0) {
         throw new NotFoundError(`Message of id: ${messageId} was not found`);

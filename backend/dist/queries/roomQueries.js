@@ -9,11 +9,15 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const moment = require("moment");
+const promiseHelper_1 = require("../utility/promiseHelper");
 const dbContext_1 = require("./dbContext");
 const routerErrors_1 = require("../errors/routerErrors");
 function getAllRooms(req) {
     return __awaiter(this, void 0, void 0, function* () {
-        const data = yield dbContext_1.database.any('SELECT * FROM rooms');
+        const [err, data] = yield promiseHelper_1.to(dbContext_1.database.any('SELECT * FROM rooms'));
+        if (err) {
+            throw new routerErrors_1.DatabaseError(err);
+        }
         if (data.length === 0) {
             throw new routerErrors_1.NotFoundError('No stored rooms were found');
         }
@@ -28,7 +32,10 @@ exports.getAllRooms = getAllRooms;
 function getAllMessages(req) {
     return __awaiter(this, void 0, void 0, function* () {
         const roomId = parseInt(req.params.roomid);
-        const data = yield dbContext_1.database.manyOrNone('SELECT * FROM messages WHERE room_id = $1', roomId);
+        const [err, data] = yield promiseHelper_1.to(dbContext_1.database.manyOrNone('SELECT * FROM messages WHERE room_id = $1', roomId));
+        if (err) {
+            throw new routerErrors_1.DatabaseError(err);
+        }
         if (data.length === 0) {
             throw new routerErrors_1.NotFoundError(`No stored messages for room with id ${roomId} were found`);
         }
@@ -44,7 +51,10 @@ function getMessageById(req) {
     return __awaiter(this, void 0, void 0, function* () {
         const roomId = parseInt(req.params.roomid);
         const messageId = parseInt(req.params.messageid);
-        const data = yield dbContext_1.database.manyOrNone('SELECT * FROM messages WHERE room_id = $1 AND message_id = $2', [roomId, messageId]);
+        const [err, data] = yield promiseHelper_1.to(dbContext_1.database.manyOrNone('SELECT * FROM messages WHERE room_id = $1 AND message_id = $2', [roomId, messageId]));
+        if (err) {
+            throw new routerErrors_1.DatabaseError(err);
+        }
         if (data.length === 0) {
             throw new routerErrors_1.NotFoundError(`Message of id: ${messageId} was not found`);
         }

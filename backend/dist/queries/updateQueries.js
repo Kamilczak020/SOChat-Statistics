@@ -9,6 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const moment = require("moment");
+const promiseHelper_1 = require("../utility/promiseHelper");
 const transcriptScraper_1 = require("../scrapers/transcriptScraper");
 const dbContext_1 = require("./dbContext");
 const routerErrors_1 = require("../errors/routerErrors");
@@ -23,7 +24,10 @@ function postFromScrapeData(req) {
             throw new routerErrors_1.InvalidQueryError('Timestamp is invalid');
         }
         // Run the scraper and provide results
-        const scrapeData = yield transcriptScraper_1.scrapeTranscriptPage(roomId, timestamp);
+        const [err, scrapeData] = yield promiseHelper_1.to(transcriptScraper_1.scrapeTranscriptPage(roomId, timestamp));
+        if (err) {
+            throw new routerErrors_1.ScrapeError(err);
+        }
         // Build our queries arrays based on scrape data
         const roomsQueries = getRoomsQueries(scrapeData);
         const usersQueries = getUsersQueries(scrapeData);

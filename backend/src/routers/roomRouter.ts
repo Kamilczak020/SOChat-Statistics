@@ -1,7 +1,6 @@
 import * as moment from 'moment';
 import { Router, Request, Response, NextFunction } from 'express';
 import { getAllRooms, getAllMessages, getMessageById } from '../queries/roomQueries';
-import { NotFoundError, RoutingError } from '../errors/routerErrors';
 import { passport } from '../authentication/passport';
 import { apiMethod } from './apiMethod';
 
