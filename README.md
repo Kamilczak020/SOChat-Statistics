@@ -18,7 +18,7 @@ cd your-dirname
 git init
 git remote add origin -f https://github.com/Kamilczak020/SOChat-Statistics.git
 git config core.sparsecheckout true
-echo "server/*" >> .git/info/sparse-checkout" 
+echo "backend/*" >> .git/info/sparse-checkout" 
 git pull origin master
 ```
 
@@ -36,31 +36,21 @@ psql createdb your-db-name -U your-username // If you have a database already, s
 psql -d your-db-name -U your-username -f your-path/sochat.sql
 ``` 
 
-
 ##### Configuring database with dbconfig.json
-To use the API properly, your server folder has to contain dbconfig.json at its' root.
-The example config is as follows (all following fields are required):
-```
-{
-    host: "localhost",
-    port: 5432,
-    database: "sochat",
-    user: "postgres",
-    password: "123456789"
-}
-```
+To use the API properly, your config folder has to contain properly set-up configs:
+dbconfig.json - database connection config
+authconfig.json - auth config, to restrict usage of certain endpoints (like /update, for example)
 
 ##### API Endpoints
 
 This API features following endpoints and HTTP methods:
 ```
-GET /rooms - returns an array of all rooms 
-GET /rooms/:id - returns information on a room with given ID
-GET /rooms/:id/messages - returns an array of all messages from a room with given ID
-POST /rooms/:id/update - fires an update for a given room ID
+GET /rooms - JSON response, where data is an array of all stored rooms 
+GET /rooms/:roomid/messages - JSON response, where data is an array of all stored messages for a given room
+GET /rooms/:roomid/messages/:messageid - JSON response, where data is an object with a message of given ID
 
-GET /users  - returns an array of all users
-GET /users/:id - returns information on a user given his ID
+GET /users  - JSON response, where data is an array of all stored users
+GET /users/:userid/messages - JSON response, where data is an array of all messages by a user with a given ID
 ```
 
 ## Credits
