@@ -4,6 +4,7 @@ import * as logger from 'morgan';
 import * as bodyParser from 'body-parser';
 import RoomRouter from './routers/roomRouter';
 import UpdateRouter from './routers/updateRouter';
+import MessageRouter from './routers/messageRouter';
 import { passport } from './authentication/passport';
 
 // Creates and configures an ExpressJS web server.
@@ -43,6 +44,7 @@ class App {
     });
     this.express.use('/', router);
     this.express.use('/rooms', RoomRouter);
+    this.express.use('/messages', MessageRouter);
     this.express.use('/update', passport.authenticate('localapikey', {session: false}), UpdateRouter);
   }
 }

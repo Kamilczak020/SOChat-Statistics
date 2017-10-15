@@ -5,6 +5,7 @@ const logger = require("morgan");
 const bodyParser = require("body-parser");
 const roomRouter_1 = require("./routers/roomRouter");
 const updateRouter_1 = require("./routers/updateRouter");
+const messageRouter_1 = require("./routers/messageRouter");
 const passport_1 = require("./authentication/passport");
 // Creates and configures an ExpressJS web server.
 class App {
@@ -36,6 +37,7 @@ class App {
         });
         this.express.use('/', router);
         this.express.use('/rooms', roomRouter_1.default);
+        this.express.use('/messages', messageRouter_1.default);
         this.express.use('/update', passport_1.passport.authenticate('localapikey', { session: false }), updateRouter_1.default);
     }
 }
