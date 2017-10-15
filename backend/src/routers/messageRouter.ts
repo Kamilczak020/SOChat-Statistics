@@ -1,14 +1,14 @@
 import * as moment from 'moment';
 import { Router, Request, Response, NextFunction } from 'express';
-import { getAllRooms } from '../queries/roomQueries';
 import { passport } from '../authentication/passport';
 import { apiMethod } from './apiMethod';
+import { getMessages, getMessageById } from '../queries/messageQueries';
 
 /**
  * Router used for '/rooms' route, providing access
  * to all stored rooms and particular room info.
  */
-export class RoomRouter {
+export class MessageRouter {
     router: Router
   
     constructor() {
@@ -18,14 +18,13 @@ export class RoomRouter {
 
     // Define routing behavior and attach db queries
     init() {
-        this.router.get('/', apiMethod(getAllRooms));
+        this.router.get('/', apiMethod(getMessages));
+        this.router.get('/:messageid', apiMethod(getMessageById));
     }
 }
 
 // Create the RoomRouter, and export its configured Express.Router
-const roomRouter = new RoomRouter();
-roomRouter.init();
+const messageRouter = new MessageRouter();
+messageRouter.init();
 
-export default roomRouter.router;
-
-
+export default messageRouter.router;
