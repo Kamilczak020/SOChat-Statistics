@@ -11,18 +11,15 @@ import { Message } from '../models/messageModel';
 
 export async function postFromScrapeData(req: Request) {
     const roomId = parseInt(req.params.roomid);
-    const timestampQuery = req.query.timestamp;
-
-    // Convert query timestamp string to a moment 
-    const timestamp = moment(timestampQuery, "YYYY-MM-DD");
+    const date = moment(req.params.date, "YYYY-MM-DD");
 
     // Check if timestamp is correct, if not return 400
-    if (!timestamp.isValid()) {
-        throw new InvalidQueryError('Timestamp is invalid');
+    if (!date.isValid()) {
+        throw new InvalidQueryError('date is invalid');
     }    
 
     // Run the scraper and provide results
-    const [err, scrapeData] = await to(scrapeTranscriptPage(roomId, timestamp));
+    const [err, scrapeData] = await to(scrapeTranscriptPage(roomId, date));
     
     if (err) {
         throw new ScrapeError(err);
@@ -42,7 +39,7 @@ export async function postFromScrapeData(req: Request) {
     .then(() => {
         return {
             status: 'success',
-            message: `Scrape data for ${timestamp} inserted sucessfully.`
+            message: `Scrape data for ${date} inserted sucessfully.`
         };
     })
 }
@@ -119,7 +116,7 @@ function getMessagesQueries(scrapeData: Message[]): pgPromise.ParameterizedQuery
                 room_id, 
                 response_id, 
                 body, 
-                timestamp, 
+                date, 
                 stars) 
             VALUES($1, $2, $3, $4, $5, $6, $7) 
             ON CONFLICT(message_id) 
@@ -129,7 +126,7 @@ function getMessagesQueries(scrapeData: Message[]): pgPromise.ParameterizedQuery
             msg.room_id,
             msg.response_id,
             msg.body,
-            msg.timestamp,
+            msg.date,
             msg.stars])
 
         queries.push(query);
