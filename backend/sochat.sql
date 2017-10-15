@@ -6,7 +6,7 @@ CREATE TABLE Messages (
     room_id int  NOT NULL,
     response_id int  NULL,
     body text NOT NULL,
-    timestamp timestamp  NOT NULL,
+    date date  NOT NULL,
     stars int  NOT NULL,
     CONSTRAINT Messages_pk PRIMARY KEY (message_id)
 );

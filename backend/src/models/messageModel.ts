@@ -7,6 +7,6 @@ export interface Message {
     response_id: number,
     room_id: number,
     body: string,
-    timestamp: string,
+    date: string,
     stars: number
 }

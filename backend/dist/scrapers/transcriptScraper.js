@@ -17,12 +17,12 @@ const transcriptBaseUrl = 'https://chat.stackoverflow.com/transcript';
  * @param date Date of the transcript page to scrape. Only takes into account Day, Month and Year
  * @param callback The callback
  */
-function scrapeTranscriptPage(roomId, date) {
+function scrapeTranscriptPage(roomId, dateQuery) {
     return __awaiter(this, void 0, void 0, function* () {
-        const timestamp = date.format('YYYY-MM-DD');
-        const year = date.format('YYYY');
-        const month = date.format('MM');
-        const day = date.format('DD');
+        const date = dateQuery.format('YYYY-MM-DD');
+        const year = dateQuery.format('YYYY');
+        const month = dateQuery.format('MM');
+        const day = dateQuery.format('DD');
         let messages = [];
         const url = `${transcriptBaseUrl}/${roomId}/${year}/${month}/${day}/0-24`;
         return new Promise((resolve, reject) => {
@@ -54,7 +54,7 @@ function scrapeTranscriptPage(roomId, date) {
                                     response_id: responseMessageId,
                                     room_id: roomId,
                                     body: messageText,
-                                    timestamp: timestamp,
+                                    date: date,
                                     stars: stars
                                 };
                                 messages.push(message);
